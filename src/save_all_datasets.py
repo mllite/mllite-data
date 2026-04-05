@@ -1,3 +1,11 @@
+//  ##     ## ##       ##       #### ######## ########   MLLite
+//  #### #### ##       ##        ##     ##    ##         Ubiquitous C++ Machine Learning By Design.
+//  ## ### ## ##       ##        ##     ##    ######     version : 2026-W13
+//  ##     ## ##       ##        ##     ##    ##         
+//  ##     ## ######## ######## ####    ##    ########   https://github.com/mllite
+//
+// SPDX-FileCopyrightText: Copyright (c) (2024-2025) Antoine CARME <Antoine.Carme@outlook.com>
+// SPDX-License-Identifier: GPL-3.0-or-later ( https://www.gnu.org/licenses/gpl-3.0.txt )
 
 import pandas as pd
 import numpy as np
