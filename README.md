@@ -21,7 +21,8 @@ As of 2026-01-01, the following flavors are available :
 7. Quantized : numerical columns are quantized using sklearn.QuantileTransformer(n_quantiles=10).
 8. Embedded CSV : a C++ CSV-like string that can be included in a source file and compiled. available in different sizes. 
 9. Embedded : a C++ std::vector-based array that can be included in a source file and compiled. available in different sizes. 
-10. Missing : data are artificially deleted in random places, impacting 5% of the dataset.
+10. Missing : data are artificially deleted in few random places, impacting 5% of the dataset.
+10. Sparse : data are artificially deleted in random places, impacting 95% of the dataset.
 
 This is an evolving process. more flavors/datasets can be added when needed. Your feedback is welcome.
 
