@@ -10,7 +10,7 @@ Some datasets are generated to push the limits : Too many classes (64), too many
 
 Each original dataset is preprocessed and saved in different forms/flavors. Flavors are designed to help with a specific modeling issue.
 
-As of 2026-01-01, the following flavors are available :
+As of 2026-05-01, the following flavors are available :
 
 1. Original : Full dataset. Contains only numerical data (can be used with regression and classification).
 2. Raw : Full dataset. Contains non-numerical data (can be used with preprocessing).
