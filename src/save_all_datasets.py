@@ -1,11 +1,11 @@
-//  ##     ## ##       ##       #### ######## ########   MLLite
-//  #### #### ##       ##        ##     ##    ##         Ubiquitous C++ Machine Learning By Design.
-//  ## ### ## ##       ##        ##     ##    ######     version : 2026-W13
-//  ##     ## ##       ##        ##     ##    ##         
-//  ##     ## ######## ######## ####    ##    ########   https://github.com/mllite
-//
-// SPDX-FileCopyrightText: Copyright (c) (2024-2025) Antoine CARME <Antoine.Carme@outlook.com>
-// SPDX-License-Identifier: GPL-3.0-or-later ( https://www.gnu.org/licenses/gpl-3.0.txt )
+#  ##     ## ##       ##       #### ######## ########   MLLite
+#  #### #### ##       ##        ##     ##    ##         Ubiquitous C++ Machine Learning By Design.
+#  ## ### ## ##       ##        ##     ##    ######     version : 2026-W13
+#  ##     ## ##       ##        ##     ##    ##         
+#  ##     ## ######## ######## ####    ##    ########   https://github.com/mllite
+#
+# SPDX-FileCopyrightText: Copyright (c) (2024-) Antoine CARME <Antoine.Carme@outlook.com>
+# SPDX-License-Identifier: GPL-3.0-or-later ( https://www.gnu.org/licenses/gpl-3.0.txt )
 
 import pandas as pd
 import numpy as np
@@ -114,7 +114,7 @@ def save_raw(ds_name, X, y, feature_names):
     print("RAW_DATA_EXTRACT_END", ds_name)
     df.to_csv("data/raw/" + ds_name + "_raw.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);    
 
-def save_artificial_missing(ds_name, X, y, feature_names):
+def save_artificial_missing_data(ds_name, X, y, feature_names, missing_rate=0.05, descriptipon = "missing"):
     rng = np.random.default_rng(seed=1789)
     if(hasattr(X, "values")):
         X1 = X.values.copy()
@@ -124,12 +124,15 @@ def save_artificial_missing(ds_name, X, y, feature_names):
     df = df.head(gDatasetLengthLimit);
     
     for c in df.columns:
-        print("save_artificial_missing" , (ds_name, c))
-        df[c] = df[c].apply(lambda x : x if(rng.uniform() > 0.05) else None)
+        print("save_artificial_" + descriptipon , (ds_name, c))
+        df[c] = df[c].apply(lambda x : x if(rng.uniform() > missing_rate) else None)
     df["target"] = y[:gDatasetLengthLimit]
     df.info()
-    df.to_csv("data/missing/" + ds_name + "_missing.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);    
+    df.to_csv("data/"  + descriptipon + "/" + ds_name + "_"  + descriptipon + ".csv", index= False, quoting=csv.QUOTE_NONNUMERIC);    
 
+def save_artificial_missing(ds_name, X, y, feature_names):
+    save_artificial_missing_data(ds_name, X, y, feature_names, missing_rate = 0.05, descriptipon = "missing")
+    save_artificial_missing_data(ds_name, X, y, feature_names, missing_rate = 0.95, descriptipon = "sparse")
 
 def save_dataset_flavors(ds_name, X, y, feature_names, sample_medium = False):
     print("SAVE_DATASET_FLAVORS", ds_name, X.shape, y.shape, type(X))
@@ -720,6 +723,7 @@ def save_reg_generated_dataset_quantized(ds_name):
 
 
 def save_generated_datetimes_class():
+    rng = np.random.default_rng(seed=1789)
     NF = 24
     (X, y) = sklearn.datasets.make_classification(
         n_samples=8192, n_classes=4, n_features=NF, n_informative=NF//2, random_state=1789);
@@ -727,9 +731,9 @@ def save_generated_datetimes_class():
     df = pd.DataFrame(X)
     df.columns = ['X_' + str(i) for i in range(NF)]
     NR = df.shape[0]
-    df['h'] = np.random.randint(12, size=NR)
-    df['d'] = np.random.randint(6, size=NR) + 6
-    df['m'] = np.random.randint(30, size=NR)
+    df['h'] = rng.integers(12, size=NR)
+    df['d'] = rng.integers(6, size=NR) + 6
+    df['m'] = rng.integers(30, size=NR)
     df['purchase_date'] = pd.date_range(start="05/07/2001", periods=X.shape[0], freq='D')
     df['purchase_date'] = df['purchase_date'].sample(frac=1)
     df['return_date'] = df[['purchase_date', 'm' , 'h', 'd']].apply(
@@ -749,6 +753,7 @@ def save_generated_datetimes_class():
 
 
 def save_generated_datetimes_reg():
+    rng = np.random.default_rng(seed=1789)
     NF = 24
     (X, y) = sklearn.datasets.make_regression(
         n_samples=8192, n_features=NF, n_informative=NF//2, random_state=1789);
@@ -756,9 +761,9 @@ def save_generated_datetimes_reg():
     df = pd.DataFrame(X)
     df.columns = ['X_' + str(i) for i in range(NF)]
     NR = df.shape[0]
-    df['h'] = np.random.randint(12, size=NR)
-    df['d'] = np.random.randint(6, size=NR) + 6
-    df['m'] = np.random.randint(30, size=NR)
+    df['h'] = rng.integers(12, size=NR)
+    df['d'] = rng.integers(6, size=NR) + 6
+    df['m'] = rng.integers(30, size=NR)
     df['purchase_date'] = pd.date_range(start="12/06/2001", periods=X.shape[0], freq='D')
     df['purchase_date'] = df['purchase_date'].sample(frac=1)
     df['return_date'] = df[['purchase_date', 'm' , 'h', 'd']].apply(
