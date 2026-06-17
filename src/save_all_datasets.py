@@ -151,14 +151,14 @@ def save_dataset_flavors(ds_name, X, y, feature_names, sample_medium = False):
     df.info()
     df = df.head(gDatasetLengthLimit)
     df.to_csv("data/original/" + ds_name + ".csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
-    df_small = df.sample(n=64, random_state=1789)
+    df_small = df.sample(n=min(df.shape[0], 64), random_state=1789)
     df_small.info()
     df_small.to_csv("data/small/" + ds_name + "_small.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
     df_tiny = df.sample(n=16, random_state=1789)
     df_tiny.info()
     df_tiny.to_csv("data/tiny/" + ds_name + "_tiny.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
     if(sample_medium):
-        df_medium = df.sample(n=512, random_state=1789)
+        df_medium = df.sample(n=min(df.shape[0], 512), random_state=1789)
         df_medium.info()
         df_medium.to_csv("data/medium/" + ds_name + "_medium.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
     else:
@@ -715,6 +715,22 @@ def save_reg_generated_dataset_quantized(ds_name):
         y = lDataset.target
         feature_names = lDataset.feature_names
 
+    gTypes[ds_name.split("_")[0]] = ("float", "float")
+
+    save_raw(ds_name, X, y, feature_names)
+    save_artificial_missing(ds_name, X, y, feature_names)
+    save_dataset_flavors(ds_name, X, y, feature_names)
+
+
+def save_mtcars_dataset():
+    ds_name = "mtcars"
+    df = pd.read_csv("source_data/mtcars.csv")
+    print(df.columns)
+    
+    X = df.drop(columns=['mpg'])
+    feature_names = [col for col in X.columns]
+    y = df['mpg']
+    
     gTypes[ds_name.split("_")[0]] = ("float", "float")
 
     save_raw(ds_name, X, y, feature_names)
