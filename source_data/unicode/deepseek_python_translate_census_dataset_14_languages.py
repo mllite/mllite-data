@@ -13,8 +13,8 @@ columns = [
     'capital-gain', 'capital-loss', 'hours-per-week', 'native-country', 'income'
 ]
 
-df = pd.read_csv(url, names=columns, na_values=' ?', skipinitialspace=True)
-
+df = pd.read_csv(url, skipinitialspace=True)
+df.columns = columns
 # ============================================================
 # 2. WORKCLASS TRANSLATIONS (all 14 languages)
 # ============================================================
