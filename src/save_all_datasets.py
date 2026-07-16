@@ -28,6 +28,15 @@ gDatasetLengthLimit = 100000
 
 gTypes = {}
 
+def get_dataset_task(ds_name):
+    (lFeatureType, lTgtType) = gTypes.get(ds_name.split("_")[0], ("float", "double"))
+    if(lTgtType in ["float" , "double"]):
+        return "regression"
+    return "classification"
+        
+        
+
+
 def generate_embedded_dataset(src_filename):
     # src_filename = data/small/adult_small.csv
     (dirname, categ, basename) = src_filename.split("/")
@@ -114,7 +123,15 @@ def save_raw(ds_name, X, y, feature_names):
     print("RAW_DATA_EXTRACT_END", ds_name)
     df.to_csv("data/raw/" + ds_name + "_raw.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);    
 
-def save_artificial_missing_data(ds_name, X, y, feature_names, missing_rate=0.05, descriptipon = "missing"):
+def generate_random_string(rng):
+    import string
+    chars = np.array(list(string.ascii_letters + string.digits))
+    random_chars = rng.choice(chars, size=10, replace=True)
+    result = ''.join(random_chars) 
+    return result
+    
+# deepseek proposal. Data quality issues
+def save_artificial_corrupted_data(ds_name, X, y, feature_names, corruption_rate=0.05, description = "corrupted"):
     rng = np.random.default_rng(seed=1789)
     if(hasattr(X, "values")):
         X1 = X.values.copy()
@@ -124,15 +141,65 @@ def save_artificial_missing_data(ds_name, X, y, feature_names, missing_rate=0.05
     df = df.head(gDatasetLengthLimit);
     
     for c in df.columns:
-        print("save_artificial_" + descriptipon , (ds_name, c))
+        print("save_artificial_" + description , (ds_name, c))
+        df[c] = df[c].apply(lambda x : x if(rng.uniform() > corruption_rate) else generate_random_string(rng))
+    df["target"] = y[:gDatasetLengthLimit]
+    df.info()
+    df.to_csv("data/"  + description + "/" + ds_name + "_"  + description + ".csv", index= False, quoting=csv.QUOTE_NONNUMERIC);    
+
+# deepseek proposal. classification/regression problems made hard
+def save_artificial_imbalanced_data(ds_name, X, y, feature_names, positive_rate=0.05, description = "imbalanced"):
+    rng = np.random.default_rng(seed=1789)
+    if(hasattr(X, "values")):
+        X1 = X.values.copy()
+    else :
+        X1 = X.copy()
+    df = pd.DataFrame(X1, columns=feature_names)
+    df = df.head(gDatasetLengthLimit);
+    
+    df["target"] = y[:gDatasetLengthLimit]
+    tsk = get_dataset_task(ds_name)
+    if(tsk == "classification"):
+        vc = df["target"].value_counts()
+        print("TARGET_VALUE_COUNTS_BEFORE", vc)
+        most_freq = vc.index[0]
+        N, NP = y.shape[0], y.shape[0] - vc.iloc[0]
+        rate = positive_rate * N / NP
+        print("N, NP, most_freq, positive_rate, rate", (N, NP, most_freq, positive_rate, rate))
+        positive_y = df["target"][df["target"] != most_freq].copy()
+        positive_y = positive_y.apply(lambda x : x if(rng.uniform() < rate) else most_freq)
+        df.loc[df["target"] != most_freq, "target"] = positive_y
+        print("TARGET_VALUE_COUNTS_AFTER", df["target"].value_counts())
+    else : # extend for regressions
+        min_tgt = df["target"].min() 
+        q = df["target"].quantile(q = (1.0 - positive_rate)) # set anything below 95% quantile to the min of the target
+        df["target"] = df["target"].apply(lambda x : x if (x >= q) else min_tgt)
+        print(df["target"].describe())
+    df.info()
+    df.to_csv("data/"  + description + "/" + ds_name + "_"  + description + ".csv", index= False, quoting=csv.QUOTE_NONNUMERIC);    
+
+def save_artificial_missing_data(ds_name, X, y, feature_names, missing_rate=0.05, description = "missing"):
+    rng = np.random.default_rng(seed=1789)
+    if(hasattr(X, "values")):
+        X1 = X.values.copy()
+    else :
+        X1 = X.copy()
+    df = pd.DataFrame(X1, columns=feature_names)
+    df = df.head(gDatasetLengthLimit);
+    
+    for c in df.columns:
+        print("save_artificial_" + description , (ds_name, c))
         df[c] = df[c].apply(lambda x : x if(rng.uniform() > missing_rate) else None)
     df["target"] = y[:gDatasetLengthLimit]
     df.info()
-    df.to_csv("data/"  + descriptipon + "/" + ds_name + "_"  + descriptipon + ".csv", index= False, quoting=csv.QUOTE_NONNUMERIC);    
+    df.to_csv("data/"  + description + "/" + ds_name + "_"  + description + ".csv", index= False, quoting=csv.QUOTE_NONNUMERIC);    
 
 def save_artificial_missing(ds_name, X, y, feature_names):
-    save_artificial_missing_data(ds_name, X, y, feature_names, missing_rate = 0.05, descriptipon = "missing")
-    save_artificial_missing_data(ds_name, X, y, feature_names, missing_rate = 0.95, descriptipon = "sparse")
+    save_artificial_missing_data(ds_name, X, y, feature_names, missing_rate = 0.05, description = "missing")
+    save_artificial_missing_data(ds_name, X, y, feature_names, missing_rate = 0.95, description = "sparse")
+    save_artificial_corrupted_data(ds_name, X, y, feature_names, corruption_rate = 0.05, description = "corrupted")
+    save_artificial_imbalanced_data(ds_name, X, y, feature_names, positive_rate = 0.05, description = "imbalanced")
+    
 
 def save_dataset_flavors(ds_name, X, y, feature_names, sample_medium = False):
     print("SAVE_DATASET_FLAVORS", ds_name, X.shape, y.shape, type(X))
@@ -456,7 +523,7 @@ def save_spambase():
 
     
 def save_abalone():
-    gTypes["abalone"] = ("float", "float")
+    gTypes["abalone"] = ("float", "std::string")
     from sklearn.datasets import fetch_openml
     abalone = fetch_openml(name="abalone")
     feature_names = abalone.feature_names
@@ -522,7 +589,7 @@ def save_hard_task_classification_dataset():
         ds_name = "many_classes_dataset_" + str(NC)
         save_raw(ds_name, X, y, feature_names)
         save_artificial_missing(ds_name, X, y, feature_names)
-        gTypes[ds_name] = ("float", "double")
+        gTypes[ds_name] = ("float", "int")
         save_dataset_flavors(ds_name, X, y, feature_names)
 
 def save_easy_task_classification_dataset():
@@ -549,7 +616,7 @@ def save_64_1024_features_classification_dataset():
         X = X.round(2)
         feature_names = ["X_" + str(i) for i in range(X.shape[1])]
         ds_name = str(NF) + "_features_16_classes"
-        gTypes[ds_name] = ("float", "double")
+        gTypes[ds_name] = ("float", "int")
         save_raw(ds_name, X, y, feature_names)
         save_artificial_missing(ds_name, X, y, feature_names)
         save_dataset_flavors(ds_name, X, y, feature_names)
@@ -797,7 +864,6 @@ def save_generated_datetimes_reg():
     save_raw_dataset_flavors(ds_name, X, y, feature_names)
 
 
-
 def save_all_classification_datasets():
     save_kdd_2009()
     save_iris_quantized()
@@ -807,7 +873,6 @@ def save_all_classification_datasets():
     save_census_one_hot()
     save_64_1024_features_classification_dataset()
     save_generated_datetimes_class()
-    save_generated_datetimes_reg()
     save_easy_task_classification_dataset()
     save_hard_task_classification_dataset()
     for ds_name in gClassificationDatasets.keys():
@@ -826,6 +891,7 @@ def save_all_regression_datasets():
     save_64_1024_features_regression_dataset()
     save_easy_task_regression_dataset()
     save_hard_task_regression_dataset()
+    save_generated_datetimes_reg()
     save_friedman_robot_arm()
     save_earth_ozone1()
     for ds_name in gRegressionDatasets.keys():
@@ -834,7 +900,7 @@ def save_all_regression_datasets():
     save_age_dataset()
 
 def create_all_dirs_if_needed():
-    dirs = "embedded medium quantized tiny embedded_csv missing original raw sampled small".split(" ")
+    dirs = "embedded medium quantized tiny embedded_csv missing original raw sampled small corrupted imbalanced".split(" ")
     for d in dirs:
         print("CREATING_DIRECTORY_IF_NEEDED" , "data/" + d)
         create_dir_if_needed("data/" + d)
