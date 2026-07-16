@@ -23,6 +23,9 @@ As of 2026-05-01, the following flavors are available :
 9. Embedded : a C++ std::vector-based array that can be included in a source file and compiled. available in different sizes. 
 10. Missing : data are artificially deleted in few random places, impacting 5% of the dataset.
 11. Sparse : data are artificially deleted in random places, impacting 95% of the dataset.
+12. Corrupted : data are artificially replaced by random strings in some random places, impacting 5% of the dataset (data quality issues, merci deepseek).
+13. Imbalanced : for classification models, the most frequent target value has its frequency artificially increased to 95% (merci deepseek).
+
 
 This is an evolving process. more flavors/datasets can be added when needed. Your feedback is welcome.
 
