@@ -199,19 +199,33 @@ def save_artificial_missing(ds_name, X, y, feature_names):
     save_artificial_missing_data(ds_name, X, y, feature_names, missing_rate = 0.95, description = "sparse")
     save_artificial_corrupted_data(ds_name, X, y, feature_names, corruption_rate = 0.05, description = "corrupted")
     save_artificial_imbalanced_data(ds_name, X, y, feature_names, positive_rate = 0.05, description = "imbalanced")
-    
 
-def save_dataset_flavors(ds_name, X, y, feature_names, sample_medium = False):
-    print("SAVE_DATASET_FLAVORS", ds_name, X.shape, y.shape, type(X))
+
+def is_numerical(series_dtype):
+    return (series_dtype.name != "object") and (series_dtype.name != "str") and (series_dtype.name != "category");
+
+def save_quantized(ds_name, X, y, feature_names):
     X_qt = X.copy()
     if(pd.core.frame.DataFrame == type(X)):
         for col in X.columns:
-            if((X[col].dtype != object) and (X[col].dtype.name != "str")):
+            if(is_numerical(X[col].dtype)):
                 X_qt[col] = quantize_column(X[col].values).flatten()
-        df = X
     else:
         for j in range(X.shape[1]):
-            X_qt[:, j] = quantize_column(X[:, j]).flatten()
+            if(is_numerical(X[:,j].dtype)):
+                X_qt[:, j] = quantize_column(X[:, j]).flatten()
+    df_qt = pd.DataFrame(X_qt , columns = feature_names)
+    df_qt["target"] = y
+    df_qt.info()
+    df_qt = df_qt.head(gDatasetLengthLimit)
+    df_qt.to_csv("data/quantized/" + ds_name + "_quantized.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
+    
+    
+def save_dataset_flavors(ds_name, X, y, feature_names, sample_medium = False):
+    print("SAVE_DATASET_FLAVORS", ds_name, X.shape, y.shape, type(X))
+    if(pd.core.frame.DataFrame == type(X)):
+        df = X
+    else:
         df = pd.DataFrame(X , columns = feature_names)                
     df = df.fillna(0)
     df["target"] = y
@@ -236,12 +250,7 @@ def save_dataset_flavors(ds_name, X, y, feature_names, sample_medium = False):
     df_sampled = df.sample(n=df.shape[0] // 8, random_state=1789)
     df_sampled.info()
     df_sampled.to_csv("data/sampled/" + ds_name + "_sampled.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
-        
-    df_qt = pd.DataFrame(X_qt , columns = feature_names)
-    df_qt["target"] = y
-    df_qt.info()
-    df_qt = df_qt.head(gDatasetLengthLimit)
-    df_qt.to_csv("data/quantized/" + ds_name + "_quantized.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
+    save_quantized(ds_name, X, y, feature_names)
 
     generate_embedded_dataset("data/small/" + ds_name + "_small.csv");
     generate_embedded_dataset("data/tiny/" + ds_name + "_tiny.csv");
@@ -278,6 +287,7 @@ def save_raw_dataset_flavors(ds_name, X, y, feature_names):
     df_sampled = df.sample(n=df.shape[0] // 8, random_state=1789)
     df_sampled.info()
     df_sampled.to_csv("data/sampled/" + ds_name + "_sampled.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
+    save_quantized(ds_name, X, y, feature_names)
     
 def save_titanic():
     from sklearn import datasets
@@ -350,9 +360,14 @@ def encode_one_hot(df, categorical_cols):
             for c in range(X2.shape[1]):
                 name = feature_names_col[c]
                 name = name.replace("x0_", col + "_")
-                df_hot[name] = X2[:,c]
+                df_hot[name] = X2[:,c].astype(np.float32)
+                df_hot[name] = df_hot[name].round(4)
         else:
             df_hot[col] = df[col]
+            if(is_numerical(df[col].dtype)):
+                df_hot[col] = df_hot[col].astype(np.float32)
+                df_hot[col] = df_hot[col].round(4)
+                
     print(df_hot)
     return df_hot
     
@@ -435,11 +450,12 @@ def save_kdd_1999():
                   [(x , "int8") for x in int8_cols])
     df = pd.read_csv("source_data/kddcup_1999/kddcup_1999_normalized.csv.gz", dtype=dtypes)
     print(df.columns)
+    categorical_cols = [col for col in df.columns if not is_numerical(df[col].dtype)]
+    print("categorical_cols :" , categorical_cols)
     df_hot = encode_one_hot(df, categorical_cols[:-1])
     df_hot.info()
     feature_names = df_hot.columns[:-1]
-    X = df_hot[feature_names].values.astype(np.float32)
-    X = X.round(4)    
+    X = df_hot[feature_names].values
     y = df_hot["intrusion_category"].str.replace('.','')
     y = y.values
     save_dataset_flavors("kddcup_1999", X, y, feature_names)
@@ -456,14 +472,13 @@ def save_kdd_2009():
     y = df_y.values
     save_raw(ds_name, X, y, feature_names)
     save_artificial_missing(ds_name, X, y, feature_names)
-    categorical_cols = [col for col in df_X.columns if (df_X[col].dtype == object or df_X[col].dtype.name == "str")]
+    categorical_cols = [col for col in df_X.columns if not is_numerical(df_X[col].dtype)]
     print(categorical_cols)
     df_hot = encode_one_hot(df_X, categorical_cols)
     df_hot.info()
     print(df_hot.columns)
     feature_names = df_hot.columns[:-1]
-    X = df_hot[feature_names].values.astype(np.float32)
-    X = X.round(4)    
+    X = df_hot[feature_names].values
     y = df_y[0].values
     save_dataset_flavors("kddcup_2009", X, y, feature_names)
 
@@ -481,8 +496,7 @@ def save_mushroom():
     df_hot = encode_one_hot(X, categorical_cols)
     df_hot.info()
     print(df_hot.columns)
-    X = df_hot.values.astype(np.float32)
-    X = X.round(4)    
+    X = df_hot.values
     save_dataset_flavors("mushroom", X, y, df_hot.columns)
 
 def save_glass():
@@ -499,8 +513,7 @@ def save_glass():
     df_hot = encode_one_hot(X, categorical_cols)
     df_hot.info()
     print(df_hot.columns)
-    X = df_hot.values.astype(np.float32)
-    X = X.round(4)    
+    X = df_hot.values
     save_dataset_flavors("glass", X, y, df_hot.columns)
 
 def save_spambase():
@@ -517,8 +530,7 @@ def save_spambase():
     df_hot = encode_one_hot(X, categorical_cols)
     df_hot.info()
     print(df_hot.columns)
-    X = df_hot.values.astype(np.float32)
-    X = X.round(4)    
+    X = df_hot.values
     save_dataset_flavors("spambase", X, y, df_hot.columns, sample_medium = True)
 
     
@@ -536,8 +548,7 @@ def save_abalone():
     df_hot = encode_one_hot(X, categorical_cols)
     df_hot.info()
     print(df_hot.columns)
-    X = df_hot.values.astype(np.float32)
-    X = X.round(4)
+    X = df_hot.values
     save_dataset_flavors("abalone", X, y, df_hot.columns)
 
     
@@ -728,7 +739,7 @@ def save_age_dataset():
     y = df[df.columns[-1]].values
     save_raw("age_dataset", X, y, df.columns[:-1])
     save_artificial_missing("age_dataset", X, y, df.columns[:-1])
-    non_numerical_cols = [col for col in df.columns if (df[col].dtype==object) or (df[col].dtype.name=="str")]
+    non_numerical_cols = [col for col in df.columns if not is_numerical(df[col].dtype)]
     X_hot = encode_one_hot(df, non_numerical_cols)
     feature_names = X_hot.columns
     print(feature_names)
