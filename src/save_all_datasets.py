@@ -909,6 +909,7 @@ def save_all_regression_datasets():
         save_reg_generated_dataset_quantized(ds_name)
     save_abalone()
     save_age_dataset()
+    save_mtcars_dataset()
 
 def create_all_dirs_if_needed():
     dirs = "embedded medium quantized tiny embedded_csv missing original raw sampled small corrupted imbalanced".split(" ")
