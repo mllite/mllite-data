@@ -360,11 +360,10 @@ def encode_one_hot(df, categorical_cols):
             for c in range(X2.shape[1]):
                 name = feature_names_col[c]
                 name = name.replace("x0_", col + "_")
-                df_hot[name] = X2[:,c].astype(np.float32)
-                df_hot[name] = df_hot[name].round(4)
+                df_hot[name] = X2[:,c].astype(np.int32)
         else:
             df_hot[col] = df[col]
-            if(is_numerical(df[col].dtype)):
+            if(pd.api.types.is_float_dtype(df[col]) and np.issubdtype(df[col].dtype, np.floating)):
                 df_hot[col] = df_hot[col].astype(np.float32)
                 df_hot[col] = df_hot[col].round(4)
                 
