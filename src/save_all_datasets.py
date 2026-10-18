@@ -113,9 +113,9 @@ def quantize_column(X):
     return X_qt.reshape(-1, 1)
 
 
-def save_raw(ds_name, X, y, feature_names):
+def save_raw(ds_name, X, y, feature_names, target_name):
     df = pd.DataFrame(X, columns=feature_names)
-    df["target"] = y
+    df[target_name] = y
     df = df.head(gDatasetLengthLimit);
     print("RAW_DATA_EXTRACT_START", ds_name)
     df.info()
@@ -131,7 +131,7 @@ def generate_random_string(rng):
     return result
     
 # deepseek proposal. Data quality issues
-def save_artificial_corrupted_data(ds_name, X, y, feature_names, corruption_rate=0.05, description = "corrupted"):
+def save_artificial_corrupted_data(ds_name, X, y, feature_names, target_name, corruption_rate=0.05, description = "corrupted"):
     rng = np.random.default_rng(seed=1789)
     if(hasattr(X, "values")):
         X1 = X.values.copy()
@@ -143,12 +143,12 @@ def save_artificial_corrupted_data(ds_name, X, y, feature_names, corruption_rate
     for c in df.columns:
         print("save_artificial_" + description , (ds_name, c))
         df[c] = df[c].apply(lambda x : x if(rng.uniform() > corruption_rate) else generate_random_string(rng))
-    df["target"] = y[:gDatasetLengthLimit]
+    df[target_name] = y[:gDatasetLengthLimit]
     df.info()
     df.to_csv("data/"  + description + "/" + ds_name + "_"  + description + ".csv", index= False, quoting=csv.QUOTE_NONNUMERIC);    
 
 # deepseek proposal. classification/regression problems made hard
-def save_artificial_imbalanced_data(ds_name, X, y, feature_names, positive_rate=0.05, description = "imbalanced"):
+def save_artificial_imbalanced_data(ds_name, X, y, feature_names, target_name, positive_rate=0.05, description = "imbalanced"):
     rng = np.random.default_rng(seed=1789)
     if(hasattr(X, "values")):
         X1 = X.values.copy()
@@ -157,28 +157,28 @@ def save_artificial_imbalanced_data(ds_name, X, y, feature_names, positive_rate=
     df = pd.DataFrame(X1, columns=feature_names)
     df = df.head(gDatasetLengthLimit);
     
-    df["target"] = y[:gDatasetLengthLimit]
+    df[target_name] = y[:gDatasetLengthLimit]
     tsk = get_dataset_task(ds_name)
     if(tsk == "classification"):
-        vc = df["target"].value_counts()
+        vc = df[target_name].value_counts()
         print("TARGET_VALUE_COUNTS_BEFORE", vc)
         most_freq = vc.index[0]
         N, NP = y.shape[0], y.shape[0] - vc.iloc[0]
         rate = positive_rate * N / NP
         print("N, NP, most_freq, positive_rate, rate", (N, NP, most_freq, positive_rate, rate))
-        positive_y = df["target"][df["target"] != most_freq].copy()
+        positive_y = df[target_name][df[target_name] != most_freq].copy()
         positive_y = positive_y.apply(lambda x : x if(rng.uniform() < rate) else most_freq)
-        df.loc[df["target"] != most_freq, "target"] = positive_y
-        print("TARGET_VALUE_COUNTS_AFTER", df["target"].value_counts())
+        df.loc[df[target_name] != most_freq, target_name] = positive_y
+        print("TARGET_VALUE_COUNTS_AFTER", df[target_name].value_counts())
     else : # extend for regressions
-        min_tgt = df["target"].min() 
-        q = df["target"].quantile(q = (1.0 - positive_rate)) # set anything below 95% quantile to the min of the target
-        df["target"] = df["target"].apply(lambda x : x if (x >= q) else min_tgt)
-        print(df["target"].describe())
+        min_tgt = df[target_name].min() 
+        q = df[target_name].quantile(q = (1.0 - positive_rate)) # set anything below 95% quantile to the min of the target
+        df[target_name] = df[target_name].apply(lambda x : x if (x >= q) else min_tgt)
+        print(df[target_name].describe())
     df.info()
     df.to_csv("data/"  + description + "/" + ds_name + "_"  + description + ".csv", index= False, quoting=csv.QUOTE_NONNUMERIC);    
 
-def save_artificial_missing_data(ds_name, X, y, feature_names, missing_rate=0.05, description = "missing"):
+def save_artificial_missing_data(ds_name, X, y, feature_names, target_name, missing_rate=0.05, description = "missing"):
     rng = np.random.default_rng(seed=1789)
     if(hasattr(X, "values")):
         X1 = X.values.copy()
@@ -190,21 +190,21 @@ def save_artificial_missing_data(ds_name, X, y, feature_names, missing_rate=0.05
     for c in df.columns:
         print("save_artificial_" + description , (ds_name, c))
         df[c] = df[c].apply(lambda x : x if(rng.uniform() > missing_rate) else None)
-    df["target"] = y[:gDatasetLengthLimit]
+    df[target_name] = y[:gDatasetLengthLimit]
     df.info()
     df.to_csv("data/"  + description + "/" + ds_name + "_"  + description + ".csv", index= False, quoting=csv.QUOTE_NONNUMERIC);    
 
-def save_artificial_missing(ds_name, X, y, feature_names):
-    save_artificial_missing_data(ds_name, X, y, feature_names, missing_rate = 0.05, description = "missing")
-    save_artificial_missing_data(ds_name, X, y, feature_names, missing_rate = 0.95, description = "sparse")
-    save_artificial_corrupted_data(ds_name, X, y, feature_names, corruption_rate = 0.05, description = "corrupted")
-    save_artificial_imbalanced_data(ds_name, X, y, feature_names, positive_rate = 0.05, description = "imbalanced")
+def save_artificial_missing(ds_name, X, y, feature_names, target_name):
+    save_artificial_missing_data(ds_name, X, y, feature_names, target_name,  missing_rate = 0.05, description = "missing")
+    save_artificial_missing_data(ds_name, X, y, feature_names, target_name,  missing_rate = 0.95, description = "sparse")
+    save_artificial_corrupted_data(ds_name, X, y, feature_names, target_name,  corruption_rate = 0.05, description = "corrupted")
+    save_artificial_imbalanced_data(ds_name, X, y, feature_names, target_name,  positive_rate = 0.05, description = "imbalanced")
 
 
 def is_numerical(series_dtype):
     return (series_dtype.name != "object") and (series_dtype.name != "str") and (series_dtype.name != "category");
 
-def save_quantized(ds_name, X, y, feature_names):
+def save_quantized(ds_name, X, y, feature_names, target_name):
     X_qt = X.copy()
     if(pd.core.frame.DataFrame == type(X)):
         for col in X.columns:
@@ -215,20 +215,20 @@ def save_quantized(ds_name, X, y, feature_names):
             if(is_numerical(X[:,j].dtype)):
                 X_qt[:, j] = quantize_column(X[:, j]).flatten()
     df_qt = pd.DataFrame(X_qt , columns = feature_names)
-    df_qt["target"] = y
+    df_qt[target_name] = y
     df_qt.info()
     df_qt = df_qt.head(gDatasetLengthLimit)
     df_qt.to_csv("data/quantized/" + ds_name + "_quantized.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
     
     
-def save_dataset_flavors(ds_name, X, y, feature_names, sample_medium = False):
+def save_dataset_flavors(ds_name, X, y, feature_names, target_name, sample_medium = False):
     print("SAVE_DATASET_FLAVORS", ds_name, X.shape, y.shape, type(X))
     if(pd.core.frame.DataFrame == type(X)):
         df = X
     else:
         df = pd.DataFrame(X , columns = feature_names)                
     df = df.fillna(0)
-    df["target"] = y
+    df[target_name] = y
     df.info()
     df = df.head(gDatasetLengthLimit)
     df.to_csv("data/original/" + ds_name + ".csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
@@ -250,7 +250,7 @@ def save_dataset_flavors(ds_name, X, y, feature_names, sample_medium = False):
     df_sampled = df.sample(n=df.shape[0] // 8, random_state=1789)
     df_sampled.info()
     df_sampled.to_csv("data/sampled/" + ds_name + "_sampled.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
-    save_quantized(ds_name, X, y, feature_names)
+    save_quantized(ds_name, X, y, feature_names, target_name) 
 
     generate_embedded_dataset("data/small/" + ds_name + "_small.csv");
     generate_embedded_dataset("data/tiny/" + ds_name + "_tiny.csv");
@@ -264,13 +264,13 @@ def save_dataset_flavors(ds_name, X, y, feature_names, sample_medium = False):
     if(X.shape[0] < 5120):
         generate_embedded_dataset_parsed("data/original/" + ds_name + ".csv"); #  too large ??
 
-def save_raw_dataset_flavors(ds_name, X, y, feature_names):
+def save_raw_dataset_flavors(ds_name, X, y, feature_names, target_name):
     print("SAVE_RAW_DATASET_FLAVORS", ds_name, X.shape, y.shape, type(X))
     if(pd.core.frame.DataFrame == type(X)):
         df = X
     else:
         df = pd.DataFrame(X , columns = feature_names)                
-    df["target"] = y
+    df[target_name] = y
     df.info()
     df = df.head(gDatasetLengthLimit)
     df.to_csv("data/original/" + ds_name + ".csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
@@ -287,7 +287,7 @@ def save_raw_dataset_flavors(ds_name, X, y, feature_names):
     df_sampled = df.sample(n=df.shape[0] // 8, random_state=1789)
     df_sampled.info()
     df_sampled.to_csv("data/sampled/" + ds_name + "_sampled.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
-    save_quantized(ds_name, X, y, feature_names)
+    save_quantized(ds_name, X, y, feature_names, target_name) 
     
 def save_titanic():
     from sklearn import datasets
@@ -295,10 +295,11 @@ def save_titanic():
     X = titanic.data.values
     y = titanic.target.values
     feature_names = titanic.feature_names
+    target_name = "Survived"
     gTypes["titanic"] = ("float", "std::int32_t")
-    save_raw("titanic", X, y, feature_names)
-    save_artificial_missing("titanic", X, y, feature_names)
-    save_raw_dataset_flavors("titanic", X, y, feature_names)
+    save_raw("titanic", X, y, feature_names, target_name) 
+    save_artificial_missing("titanic", X, y, feature_names, target_name) 
+    save_raw_dataset_flavors("titanic", X, y, feature_names, target_name) 
 
 def save_iris_quantized():
     from sklearn.datasets import load_iris
@@ -306,10 +307,11 @@ def save_iris_quantized():
     X = iris.data
     y = iris.target
     feature_names = iris.feature_names
+    target_name = "iris"
     gTypes["iris"] = ("float", "std::int32_t")
-    save_raw("iris", X, y, feature_names)
-    save_artificial_missing("iris", X, y, feature_names)
-    save_dataset_flavors("iris", X, y, feature_names)
+    save_raw("iris", X, y, feature_names, target_name) 
+    save_artificial_missing("iris", X, y, feature_names, target_name) 
+    save_dataset_flavors("iris", X, y, feature_names, target_name) 
 
 def save_digits_quantized():
     from sklearn.datasets import load_digits
@@ -320,10 +322,11 @@ def save_digits_quantized():
     gTypes["digits"] = ("std::int8_t", "std::int32_t")
 
     feature_names = digits.feature_names
+    target_name = "digit"
 
-    save_raw("digits", X, y, feature_names)
-    save_artificial_missing("digits", X, y, feature_names)
-    save_dataset_flavors("digits", X, y, feature_names)
+    save_raw("digits", X, y, feature_names, target_name) 
+    save_artificial_missing("digits", X, y, feature_names, target_name) 
+    save_dataset_flavors("digits", X, y, feature_names, target_name) 
 
 
 def save_census_quantized():
@@ -344,7 +347,8 @@ def save_census_quantized():
     print(X1.values)
 
     feature_names = census.feature_names
-    save_dataset_flavors("census", X1, y, feature_names)
+    target_name = "income"
+    save_dataset_flavors("census", X1, y, feature_names, target_name) 
 
 def encode_one_hot(df, categorical_cols):
     from sklearn.preprocessing import OneHotEncoder
@@ -373,18 +377,20 @@ def encode_one_hot(df, categorical_cols):
 def save_census_one_hot():
     from sklearn.datasets import fetch_openml
     gTypes["census"] = ("float", "std::string")
+    gTypes["census_one_hot"] = ("float", "std::string")
     census = fetch_openml(name="adult", version=2)
     y = census.target
     X = census.data
-    save_raw("census", X.values, y.values, census.feature_names)
-    save_artificial_missing("census", X, y, census.feature_names)
+    target_name = "income"
+    save_raw("census", X.values, y.values, census.feature_names, target_name) 
+    save_artificial_missing("census", X, y, census.feature_names, target_name) 
     non_numerical_cols = ["workclass", "education","marital-status","occupation","relationship","race","sex", "native-country"]
     X_hot = encode_one_hot(X, non_numerical_cols)
     feature_names = X_hot.columns
-    print(feature_names)
-    save_raw("census_one_hot", X_hot.values, y, feature_names)
-    save_artificial_missing("census_one_hot", X_hot.values, y, feature_names)
-    save_dataset_flavors("census_one_hot", X_hot.values, y, feature_names)
+    print(feature_names, target_name) 
+    save_raw("census_one_hot", X_hot.values, y, feature_names, target_name) 
+    save_artificial_missing("census_one_hot", X_hot.values, y, feature_names, target_name) 
+    save_dataset_flavors("census_one_hot", X_hot.values, y, feature_names, target_name) 
 
 def save_raw_census():
     from sklearn.datasets import fetch_openml
@@ -393,17 +399,19 @@ def save_raw_census():
     y = census.target
     X = census.data
     feature_names = census.feature_names
-    print(feature_names)
-    save_raw("adult", X, y, feature_names)
-    save_artificial_missing("adult", X, y, feature_names)
-    save_raw_dataset_flavors("adult", X, y, feature_names)
+    target_name = "income"
+    print(feature_names, target_name) 
+    save_raw("adult", X, y, feature_names, target_name) 
+    save_artificial_missing("adult", X, y, feature_names, target_name) 
+    save_raw_dataset_flavors("adult", X, y, feature_names, target_name) 
 
 def save_hotel_reviews():
     from sklearn.datasets import fetch_openml
-    gTypes["adult"] = ("float", "std::string")
+    gTypes["hotel_reviews"] = ("float", "std::string")
     ds_name = "hotel_reviews"
     hotel_reviews = fetch_openml(name="515K-Hotel-Reviews-Data-in-Europe", version=1)
     feature_names = [x  for x in hotel_reviews.feature_names if(x != "Reviewer_Score")]    
+    target_name = "Reviewer_Score"
     y = hotel_reviews.data["Reviewer_Score"].values
     X = hotel_reviews.data[feature_names].values
     tags = hotel_reviews.data["Tags"].values.tolist()
@@ -429,10 +437,10 @@ def save_hotel_reviews():
     feature_names = [x  for x in df.columns if(x != "Tags")]    
     y = hotel_reviews.data["Reviewer_Score"]
     X = df[feature_names].values
-    print(feature_names)
-    save_raw(ds_name, X, y, feature_names)
-    save_artificial_missing(ds_name, X, y, feature_names)
-    save_raw_dataset_flavors(ds_name, X, y, feature_names)
+    print(feature_names, target_name) 
+    save_raw(ds_name, X, y, feature_names, target_name) 
+    save_artificial_missing(ds_name, X, y, feature_names, target_name) 
+    save_raw_dataset_flavors(ds_name, X, y, feature_names, target_name) 
 
 
 def save_kddcup_1999():
@@ -450,20 +458,21 @@ def save_kddcup_1999():
     df = pd.read_csv("source_data/kddcup_1999/kddcup_1999_normalized.csv.gz", dtype=dtypes)
     print(df.columns)
     ds_name = "kddcup_1999"
+    target_name = "intrusion_category"
     feature_names = [col for col in df.columns if col != "intrusion_category"]
     X = df[feature_names].values
-    y = df["intrusion_category"].str.replace('.','')
-    save_raw(ds_name, X, y, feature_names)
-    save_artificial_missing(ds_name, X, y, feature_names)
+    y = df[target_name].str.replace('.','')
+    save_raw(ds_name, X, y, feature_names, target_name) 
+    save_artificial_missing(ds_name, X, y, feature_names, target_name) 
     categorical_cols = [col for col in df.columns if not is_numerical(df[col].dtype)]
     print("categorical_cols :" , categorical_cols)
     df_hot = encode_one_hot(df, categorical_cols[:-1])
     df_hot.info()
     feature_names = df_hot.columns[:-1]
     X = df_hot[feature_names].values
-    y = df_hot["intrusion_category"].str.replace('.','')
+    y = df_hot[target_name].str.replace('.','')
     y = y.values
-    save_dataset_flavors("kddcup_1999", X, y, feature_names)
+    save_dataset_flavors("kddcup_1999", X, y, feature_names, target_name) 
 
 
 def save_kddcup_2009():
@@ -473,10 +482,11 @@ def save_kddcup_2009():
     print(df_X.columns)
     ds_name = "kddcup_2009"
     feature_names = df_X.columns
+    target_name = "churn"
     X = df_X.values
     y = df_y.values
-    save_raw(ds_name, X, y, feature_names)
-    save_artificial_missing(ds_name, X, y, feature_names)
+    save_raw(ds_name, X, y, feature_names, target_name) 
+    save_artificial_missing(ds_name, X, y, feature_names, target_name) 
     categorical_cols = [col for col in df_X.columns if not is_numerical(df_X[col].dtype)]
     print(categorical_cols)
     df_hot = encode_one_hot(df_X, categorical_cols)
@@ -485,58 +495,61 @@ def save_kddcup_2009():
     feature_names = df_hot.columns[:-1]
     X = df_hot[feature_names].values
     y = df_y[0].values
-    save_dataset_flavors("kddcup_2009", X, y, feature_names)
+    save_dataset_flavors("kddcup_2009", X, y, feature_names, target_name) 
 
 def save_mushroom():
     from sklearn.datasets import fetch_openml
     gTypes["mushroom"] = ("float", "std::string")
     mushroom = fetch_openml(name="mushroom")
     feature_names = mushroom.feature_names
+    target_name = mushroom.target_names[0]
     X = mushroom.data
     y = mushroom.target # tartget = "class", 2 categories 'e' (edible) and 'p' (poisonous).
     ds_name = "mushroom"
-    save_raw(ds_name, X, y, feature_names)
-    save_artificial_missing(ds_name, X, y, feature_names)
+    save_raw(ds_name, X, y, feature_names, target_name) 
+    save_artificial_missing(ds_name, X, y, feature_names, target_name) 
     categorical_cols = feature_names # all 22 features are categorical
     df_hot = encode_one_hot(X, categorical_cols)
     df_hot.info()
     print(df_hot.columns)
     X = df_hot.values
-    save_dataset_flavors("mushroom", X, y, df_hot.columns)
+    save_dataset_flavors("mushroom", X, y, df_hot.columns, target_name)
 
 def save_glass():
     from sklearn.datasets import fetch_openml
     gTypes["glass"] = ("float", "std::string")
     glass = fetch_openml(name="glass")
     feature_names = glass.feature_names
+    target_name = glass.target_names[0]
     X = glass.data
     y = glass.target # 
     ds_name = "glass"
-    save_raw(ds_name, X, y, feature_names)
-    save_artificial_missing(ds_name, X, y, feature_names)
+    save_raw(ds_name, X, y, feature_names, target_name) 
+    save_artificial_missing(ds_name, X, y, feature_names, target_name) 
     categorical_cols = [] # none
     df_hot = encode_one_hot(X, categorical_cols)
     df_hot.info()
     print(df_hot.columns)
     X = df_hot.values
-    save_dataset_flavors("glass", X, y, df_hot.columns)
+    save_dataset_flavors("glass", X, y, df_hot.columns, target_name)
 
 def save_spambase():
     from sklearn.datasets import fetch_openml
     gTypes["spambase"] = ("float", "int")
     spambase = fetch_openml(name="spambase")
     feature_names = spambase.feature_names
+    target_name = spambase.target_names[0]
     X = spambase.data
     y = spambase.target # 
     ds_name = "spambase"
-    save_raw(ds_name, X, y, feature_names)
-    save_artificial_missing(ds_name, X, y, feature_names)
+    save_raw(ds_name, X, y, feature_names, target_name) 
+    save_artificial_missing(ds_name, X, y, feature_names, target_name) 
     categorical_cols = [] # none
     df_hot = encode_one_hot(X, categorical_cols)
     df_hot.info()
     print(df_hot.columns)
     X = df_hot.values
-    save_dataset_flavors("spambase", X, y, df_hot.columns, sample_medium = True)
+    save_dataset_flavors("spambase", X, y, df_hot.columns, target_name, sample_medium = True)
 
     
 def save_abalone():
@@ -544,17 +557,18 @@ def save_abalone():
     from sklearn.datasets import fetch_openml
     abalone = fetch_openml(name="abalone")
     feature_names = abalone.feature_names
+    target_name = abalone.target_names[0]
     X = abalone.data
     y = abalone.target # tartget = "class", 2 categories 'e' (edible) and 'p' (poisonous).
     ds_name = "abalone"
-    save_raw(ds_name, X, y, feature_names)
-    save_artificial_missing(ds_name, X, y, feature_names)
+    save_raw(ds_name, X, y, feature_names, target_name) 
+    save_artificial_missing(ds_name, X, y, feature_names, target_name) 
     categorical_cols = [ 'Sex' ] 
     df_hot = encode_one_hot(X, categorical_cols)
     df_hot.info()
     print(df_hot.columns)
     X = df_hot.values
-    save_dataset_flavors("abalone", X, y, df_hot.columns)
+    save_dataset_flavors("abalone", X, y, df_hot.columns, target_name)
 
     
 def save_california_housing_quantized():
@@ -564,8 +578,9 @@ def save_california_housing_quantized():
     y = california_housing.target
     ds_name = "california_housing"
     feature_names = california_housing.feature_names
-    save_raw(ds_name, X, y, feature_names)
-    save_artificial_missing(ds_name, X, y, feature_names)
+    target_name = california_housing.target_names[0]
+    save_raw(ds_name, X, y, feature_names, target_name) 
+    save_artificial_missing(ds_name, X, y, feature_names, target_name) 
 
     print(X.columns)
     X1 = X.copy();
@@ -580,7 +595,7 @@ def save_california_housing_quantized():
     print(X1.values)
     gTypes["california_housing"] = ("float", "double")
     
-    save_dataset_flavors("california_housing", X1, y, feature_names)
+    save_dataset_flavors("california_housing", X1, y, feature_names, target_name) 
 
     
 def save_diabetes_quantized():
@@ -589,11 +604,12 @@ def save_diabetes_quantized():
     X = diabetes.data
     y = diabetes.target
     feature_names = diabetes.feature_names
+    target_name = "diabetes"
     gTypes["diabetes"] = ("float", "double")
     ds_name = "diabetes"
-    save_raw(ds_name, X, y, feature_names)
-    save_artificial_missing(ds_name, X, y, feature_names)
-    save_dataset_flavors("diabetes", X, y, feature_names)
+    save_raw(ds_name, X, y, feature_names, target_name) 
+    save_artificial_missing(ds_name, X, y, feature_names, target_name) 
+    save_dataset_flavors("diabetes", X, y, feature_names, target_name) 
 
 def save_hard_task_classification_dataset():
     NF = 32
@@ -602,11 +618,12 @@ def save_hard_task_classification_dataset():
             n_samples=8192, n_classes=NC, n_features=NF, n_informative=NF//2, random_state=1789);
         X = X.round(2)
         feature_names = ["X_" + str(i) for i in range(X.shape[1])]
+        target_name = "hard_target_" + str(NC)
         ds_name = "many_classes_dataset_" + str(NC)
-        save_raw(ds_name, X, y, feature_names)
-        save_artificial_missing(ds_name, X, y, feature_names)
+        save_raw(ds_name, X, y, feature_names, target_name) 
+        save_artificial_missing(ds_name, X, y, feature_names, target_name) 
         gTypes[ds_name] = ("float", "int")
-        save_dataset_flavors(ds_name, X, y, feature_names)
+        save_dataset_flavors(ds_name, X, y, feature_names, target_name) 
 
 def save_easy_task_classification_dataset():
     NF = 32
@@ -619,11 +636,12 @@ def save_easy_task_classification_dataset():
     y1 = np.round(y1).astype(int)
     y1 = np.remainder(y1, NC)
     feature_names = ["X_" + str(i) for i in range(X.shape[1])]
+    target_name = "easy_target_" + str(NC)
     ds_name = "easy_class_task_linear_" + str(NC)
     gTypes[ds_name] = ("float", "int")
-    save_raw(ds_name, X, y1, feature_names)
-    save_artificial_missing(ds_name, X, y1, feature_names)
-    save_dataset_flavors(ds_name, X, y1, feature_names)
+    save_raw(ds_name, X, y1, feature_names, target_name) 
+    save_artificial_missing(ds_name, X, y1, feature_names, target_name) 
+    save_dataset_flavors(ds_name, X, y1, feature_names, target_name) 
 
 def save_64_1024_features_classification_dataset():
     for NF in [64, 128, 256, 512, 1024]:
@@ -631,11 +649,12 @@ def save_64_1024_features_classification_dataset():
             n_samples=8192, n_classes=16, n_features=NF, n_informative=NF//2, random_state=1789);
         X = X.round(2)
         feature_names = ["X_" + str(i) for i in range(X.shape[1])]
+        target_name = "class_target_nf_" + str(NF)
         ds_name = str(NF) + "_features_16_classes"
         gTypes[ds_name] = ("float", "int")
-        save_raw(ds_name, X, y, feature_names)
-        save_artificial_missing(ds_name, X, y, feature_names)
-        save_dataset_flavors(ds_name, X, y, feature_names)
+        save_raw(ds_name, X, y, feature_names, target_name) 
+        save_artificial_missing(ds_name, X, y, feature_names, target_name) 
+        save_dataset_flavors(ds_name, X, y, feature_names, target_name) 
 
     
 def save_64_1024_features_regression_dataset():
@@ -644,11 +663,12 @@ def save_64_1024_features_regression_dataset():
         X = X.round(2)
         y = y.round(2)
         feature_names = ["X_" + str(i) for i in range(X.shape[1])]
+        target_name = "reg_target_nf_" + str(NF)
         ds_name = str(NF) + "_features_reg"
         gTypes[ds_name] = ("float", "double")
-        save_raw(ds_name, X, y, feature_names)
-        save_artificial_missing(ds_name, X, y, feature_names)
-        save_dataset_flavors(ds_name, X, y, feature_names)
+        save_raw(ds_name, X, y, feature_names, target_name) 
+        save_artificial_missing(ds_name, X, y, feature_names, target_name) 
+        save_dataset_flavors(ds_name, X, y, feature_names, target_name) 
 
 def save_easy_task_regression_dataset():
     NF = 12
@@ -656,23 +676,26 @@ def save_easy_task_regression_dataset():
     X = X.round(2)
     y1 = X.mean(axis = 1)
     feature_names = ["X_" + str(i) for i in range(X.shape[1])]
+    target_name = "easy_reg_target_linear"
     ds_name = "easy_reg_task_linear"
     gTypes[ds_name] = ("float", "float")
-    save_raw(ds_name, X, y1, feature_names)
-    save_artificial_missing(ds_name, X, y1, feature_names)
-    save_dataset_flavors(ds_name, X, y1, feature_names)
+    save_raw(ds_name, X, y1, feature_names, target_name) 
+    save_artificial_missing(ds_name, X, y1, feature_names, target_name) 
+    save_dataset_flavors(ds_name, X, y1, feature_names, target_name) 
     y2 = 0.0 * y1
     ds_name = "easy_reg_task_zero"
     gTypes[ds_name] = ("float", "float")
-    save_raw(ds_name, X, y2, feature_names)
-    save_artificial_missing(ds_name, X, y2, feature_names)
-    save_dataset_flavors(ds_name, X, y2, feature_names)
+    target_name = "easy_reg_target_zero"
+    save_raw(ds_name, X, y2, feature_names, target_name) 
+    save_artificial_missing(ds_name, X, y2, feature_names, target_name) 
+    save_dataset_flavors(ds_name, X, y2, feature_names, target_name) 
     y3 = y2 + 3.14
     ds_name = "easy_reg_task_const_pi"
+    target_name = "easy_reg_target_const_pi"
     gTypes[ds_name] = ("float", "float")
-    save_raw(ds_name, X, y3, feature_names)
-    save_artificial_missing(ds_name, X, y3, feature_names)
-    save_dataset_flavors(ds_name, X, y3, feature_names)
+    save_raw(ds_name, X, y3, feature_names, target_name) 
+    save_artificial_missing(ds_name, X, y3, feature_names, target_name) 
+    save_dataset_flavors(ds_name, X, y3, feature_names, target_name) 
 
 # white noise prediction
 def save_hard_task_regression_dataset():
@@ -680,14 +703,15 @@ def save_hard_task_regression_dataset():
     (X, y) = sklearn.datasets.make_regression(n_samples=8192, n_features=NF, n_informative=NF//2, random_state=1789);
     X = X.round(2)
     feature_names = ["X_" + str(i) for i in range(X.shape[1])]
+    target_name = "hard_reg_white_noise"
     mu, sigma = 0.0, 1.0
     rng = np.random.default_rng(seed = 1789)
     y = rng.normal(mu, sigma, 8192)
     ds_name = "hard_reg_task_white_noise_Normal_0_1"
     gTypes[ds_name] = ("float", "float")
-    save_raw(ds_name, X, y, feature_names)
-    save_artificial_missing(ds_name, X, y, feature_names)
-    save_dataset_flavors(ds_name, X, y, feature_names)
+    save_raw(ds_name, X, y, feature_names, target_name) 
+    save_artificial_missing(ds_name, X, y, feature_names, target_name) 
+    save_dataset_flavors(ds_name, X, y, feature_names, target_name) 
     
 def save_friedman_robot_arm(iSeed = 1789):
     # http://www.milbo.users.sonic.net/earth/Friedman-FastMars.pdf
@@ -705,7 +729,7 @@ def save_friedman_robot_arm(iSeed = 1789):
         u = rng.random((ncases,)).reshape(-1, 1)
         X = np.hstack((X, u))
     feature_names = ["l1", "l2", "theta1", "theta2", "phi"] + ["Noise_" + str(i) for i in range(25)]
-    
+    target_name = "robot_d"    
     robot_x = l1 * np.cos(theta1) - l2 * np.cos(theta1 + theta2) * np.cos(phi)
     robot_y = l1 * np.sin(theta1) - l2 * np.sin(theta1 + theta2) * np.cos(phi)
     robot_z = l2 * np.sin(theta2) * np.sin(phi)
@@ -715,10 +739,10 @@ def save_friedman_robot_arm(iSeed = 1789):
     X = X.round(4)
     y = y.astype(np.float32)
     y = y.round(4)
-    save_raw("friedman_robot_arm", X, y, feature_names)
-    save_artificial_missing("friedman_robot_arm", X, y, feature_names)
+    save_raw("friedman_robot_arm", X, y, feature_names, target_name) 
+    save_artificial_missing("friedman_robot_arm", X, y, feature_names, target_name) 
     gTypes["friedman_robot_arm"] = ("float", "float")    
-    save_dataset_flavors("friedman_robot_arm", X, y, feature_names)
+    save_dataset_flavors("friedman_robot_arm", X, y, feature_names, target_name) 
 
 def save_earth_ozone1():
     df = pd.read_csv("source_data/earth_ozone1.csv")
@@ -730,10 +754,11 @@ def save_earth_ozone1():
     y = y.astype(np.float32)
     y = y.round(4)
     feature_names = df.columns[2:]
-    save_raw("earth_ozone1", X, y, feature_names)
-    save_artificial_missing("earth_ozone1", X, y, feature_names)
+    target_name = "ozone"    
+    save_raw("earth_ozone1", X, y, feature_names, target_name) 
+    save_artificial_missing("earth_ozone1", X, y, feature_names, target_name) 
     gTypes["earth_ozone1"] = ("float", "float")    
-    save_dataset_flavors("earth_ozone1", X, y, feature_names)
+    save_dataset_flavors("earth_ozone1", X, y, feature_names, target_name) 
     
 def save_age_dataset():
     # source : https://github.com/Moradnejad/AgeDataset
@@ -742,14 +767,15 @@ def save_age_dataset():
     print(df.columns)
     X = df[df.columns[:-1]].values
     y = df[df.columns[-1]].values
-    save_raw("age_dataset", X, y, df.columns[:-1])
-    save_artificial_missing("age_dataset", X, y, df.columns[:-1])
+    target_name = "age"    
+    save_raw("age_dataset", X, y, df.columns[:-1], target_name)
+    save_artificial_missing("age_dataset", X, y, df.columns[:-1], target_name)
     non_numerical_cols = [col for col in df.columns if not is_numerical(df[col].dtype)]
     X_hot = encode_one_hot(df, non_numerical_cols)
     feature_names = X_hot.columns
-    print(feature_names)
+    print(feature_names, target_name) 
     y = df[df.columns[-1]]
-    save_dataset_flavors("age_dataset", X_hot, y, feature_names)
+    save_dataset_flavors("age_dataset", X_hot, y, feature_names, target_name) 
     
 
 gRegressionDatasets = {}
@@ -775,34 +801,38 @@ def save_class_generated_dataset_quantized(ds_name):
     if(type(lDataset) == tuple):
         (X, y) = lDataset
         feature_names = ["X_" + str(i) for i in range(X.shape[1])]
+        target_name = "target"    
     else:
         X = lDataset.data
         y = lDataset.target
         feature_names = lDataset.feature_names
+        target_name = "target"    
 
     gTypes[ds_name.split("_")[0]] = ("float", "std::int32_t")
     if(y.dtype == "np.int64"):
         gTypes[ds_name.split("_")[0]] = ("float", "std::int32_t")
 
-    save_raw(ds_name, X, y, feature_names)
-    save_artificial_missing(ds_name, X, y, feature_names)
-    save_dataset_flavors(ds_name, X, y, feature_names)
+    save_raw(ds_name, X, y, feature_names, target_name) 
+    save_artificial_missing(ds_name, X, y, feature_names, target_name) 
+    save_dataset_flavors(ds_name, X, y, feature_names, target_name) 
 
 def save_reg_generated_dataset_quantized(ds_name):
     lDataset = gRegressionDatasets[ds_name]
     if(type(lDataset) == tuple):
         (X, y) = lDataset
         feature_names = ["X_" + str(i) for i in range(X.shape[1])]
+        target_name = "target"    
     else:
         X = lDataset.data
         y = lDataset.target
         feature_names = lDataset.feature_names
+        target_name = "target"    
 
     gTypes[ds_name.split("_")[0]] = ("float", "float")
 
-    save_raw(ds_name, X, y, feature_names)
-    save_artificial_missing(ds_name, X, y, feature_names)
-    save_dataset_flavors(ds_name, X, y, feature_names)
+    save_raw(ds_name, X, y, feature_names, target_name) 
+    save_artificial_missing(ds_name, X, y, feature_names, target_name) 
+    save_dataset_flavors(ds_name, X, y, feature_names, target_name) 
 
 
 def save_mtcars_dataset():
@@ -812,13 +842,14 @@ def save_mtcars_dataset():
     
     X = df.drop(columns=['mpg'])
     feature_names = [col for col in X.columns]
+    target_name = "mpg"    
     y = df['mpg']
     
     gTypes[ds_name.split("_")[0]] = ("float", "float")
 
-    save_raw(ds_name, X, y, feature_names)
-    save_artificial_missing(ds_name, X, y, feature_names)
-    save_dataset_flavors(ds_name, X, y, feature_names)
+    save_raw(ds_name, X, y, feature_names, target_name) 
+    save_artificial_missing(ds_name, X, y, feature_names, target_name) 
+    save_dataset_flavors(ds_name, X, y, feature_names, target_name) 
 
 
 def save_generated_datetimes_class():
@@ -827,6 +858,7 @@ def save_generated_datetimes_class():
     (X, y) = sklearn.datasets.make_classification(
         n_samples=8192, n_classes=4, n_features=NF, n_informative=NF//2, random_state=1789);
     X = X.round(2)
+    target_name = "rnd_class_target"
     df = pd.DataFrame(X)
     df.columns = ['X_' + str(i) for i in range(NF)]
     NR = df.shape[0]
@@ -837,18 +869,18 @@ def save_generated_datetimes_class():
     df['purchase_date'] = df['purchase_date'].sample(frac=1)
     df['return_date'] = df[['purchase_date', 'm' , 'h', 'd']].apply(
         lambda x : x["purchase_date"] + DateOffset(months=x["m"], hours=x["h"], days=x["d"]), axis=1)
-    df["target"] = df["h"] + df["m"] + df["d"]
+    df[target_name] = df["h"] + df["m"] + df["d"]
     df['h'] = df['h'].apply(lambda x : 'h_' + str(x))
     df['h'] = df['m'].apply(lambda x : 'm_' + str(x))
     df['h'] = df['d'].apply(lambda x : 'd_' + str(x))
-    df["target"] = df["target"].mod(4)
+    df[target_name] = df[target_name].mod(4)
     cols = [x for x in df.columns]
     (X, y) = (df[cols[:-1]].values, df[cols[-1]].values)
     feature_names = cols[:-1]
     ds_name = "repair_dates_4_class"
-    save_raw(ds_name, X, y, feature_names)
-    save_artificial_missing(ds_name, X, y, feature_names)
-    save_raw_dataset_flavors(ds_name, X, y, feature_names)
+    save_raw(ds_name, X, y, feature_names, target_name) 
+    save_artificial_missing(ds_name, X, y, feature_names, target_name) 
+    save_raw_dataset_flavors(ds_name, X, y, feature_names, target_name) 
 
 
 def save_generated_datetimes_reg():
@@ -860,6 +892,7 @@ def save_generated_datetimes_reg():
     df = pd.DataFrame(X)
     df.columns = ['X_' + str(i) for i in range(NF)]
     NR = df.shape[0]
+    target_name = "rnd_reg_target"
     df['h'] = rng.integers(12, size=NR)
     df['d'] = rng.integers(6, size=NR) + 6
     df['m'] = rng.integers(30, size=NR)
@@ -867,7 +900,7 @@ def save_generated_datetimes_reg():
     df['purchase_date'] = df['purchase_date'].sample(frac=1)
     df['return_date'] = df[['purchase_date', 'm' , 'h', 'd']].apply(
         lambda x : x["purchase_date"] + DateOffset(months=x["m"], hours=x["h"], days=x["d"]), axis=1)
-    df["target"] = df["h"] + df["m"] + df["d"]
+    df[target_name] = df["h"] + df["m"] + df["d"]
     df['h'] = df['h'].apply(lambda x : 'h_' + str(x))
     df['m'] = df['m'].apply(lambda x : 'm_' + str(x))
     df['d'] = df['d'].apply(lambda x : 'd_' + str(x))
@@ -875,9 +908,9 @@ def save_generated_datetimes_reg():
     (X, y) = (df[cols[:-1]].values, df[cols[-1]].values)
     feature_names = cols[:-1]
     ds_name = "repair_dates_4_reg"
-    save_raw(ds_name, X, y, feature_names)
-    save_artificial_missing(ds_name, X, y, feature_names)
-    save_raw_dataset_flavors(ds_name, X, y, feature_names)
+    save_raw(ds_name, X, y, feature_names, target_name) 
+    save_artificial_missing(ds_name, X, y, feature_names, target_name) 
+    save_raw_dataset_flavors(ds_name, X, y, feature_names, target_name) 
 
 
 def save_all_classification_datasets():
@@ -927,6 +960,4 @@ def save_all():
     save_all_classification_datasets()
     save_all_regression_datasets()
 
-# save_all()
-save_kddcup_1999()
-save_kddcup_2009()
+save_all()
