@@ -29,7 +29,7 @@ gDatasetLengthLimit = 100000
 gTypes = {}
 
 def get_dataset_task(ds_name):
-    (lFeatureType, lTgtType) = gTypes.get(ds_name.split("_")[0], ("float", "double"))
+    (lFeatureType, lTgtType) = gTypes.get(ds_name, ("float", "double"))
     if(lTgtType in ["float" , "double"]):
         return "regression"
     return "classification"
@@ -449,6 +449,12 @@ def save_kdd_1999():
                   [(x , "int8") for x in int8_cols])
     df = pd.read_csv("source_data/kddcup_1999/kddcup_1999_normalized.csv.gz", dtype=dtypes)
     print(df.columns)
+    ds_name = "kdd_1999"
+    feature_names = [col for col in df.columns if col != "intrusion_category"]
+    X = df[feature_names].values
+    y = df["intrusion_category"].str.replace('.','')
+    save_raw(ds_name, X, y, feature_names)
+    save_artificial_missing(ds_name, X, y, feature_names)
     categorical_cols = [col for col in df.columns if not is_numerical(df[col].dtype)]
     print("categorical_cols :" , categorical_cols)
     df_hot = encode_one_hot(df, categorical_cols[:-1])
@@ -921,4 +927,5 @@ def save_all():
     save_all_classification_datasets()
     save_all_regression_datasets()
 
-save_all()
+# save_all()
+save_kdd_1999()
