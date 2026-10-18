@@ -927,5 +927,4 @@ def save_all():
     save_all_classification_datasets()
     save_all_regression_datasets()
 
-# save_all()
-save_kdd_1999()
+save_all()
