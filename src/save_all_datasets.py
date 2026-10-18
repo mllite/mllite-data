@@ -435,8 +435,8 @@ def save_hotel_reviews():
     save_raw_dataset_flavors(ds_name, X, y, feature_names)
 
 
-def save_kdd_1999():
-    gTypes["kdd_1999"] = ("float", "std::string")
+def save_kddcup_1999():
+    gTypes["kddcup_1999"] = ("float", "std::string")
     feature_names = "duration protocol_type service flag src_bytes dst_bytes land wrong_fragment urgent hot num_failed_logins logged_in num_compromised root_shell su_attempted num_root num_file_creations num_shells num_access_files num_outbound_cmds is_host_login is_guest_login count srv_count serror_rate srv_serror_rate rerror_rate srv_rerror_rate same_srv_rate diff_srv_rate srv_diff_host_rate dst_host_count dst_host_srv_count dst_host_same_srv_rate dst_host_diff_srv_rate dst_host_same_src_port_rate dst_host_srv_diff_host_rate dst_host_serror_rate dst_host_srv_serror_rate dst_host_rerror_rate dst_host_srv_rerror_rate".split(" ")    
     categorical_cols = ["protocol_type", "service", "flag", "intrusion_category"]
     float_cols = [x for x in feature_names if x.endswith("_rate")]
@@ -449,7 +449,7 @@ def save_kdd_1999():
                   [(x , "int8") for x in int8_cols])
     df = pd.read_csv("source_data/kddcup_1999/kddcup_1999_normalized.csv.gz", dtype=dtypes)
     print(df.columns)
-    ds_name = "kdd_1999"
+    ds_name = "kddcup_1999"
     feature_names = [col for col in df.columns if col != "intrusion_category"]
     X = df[feature_names].values
     y = df["intrusion_category"].str.replace('.','')
@@ -466,12 +466,12 @@ def save_kdd_1999():
     save_dataset_flavors("kddcup_1999", X, y, feature_names)
 
 
-def save_kdd_2009():
+def save_kddcup_2009():
     gTypes["kdd_2099"] = ("float", "int")
     df_X = pd.read_csv("source_data/kddcup_2009/orange_small_train.data", sep="\t")
     df_y = pd.read_csv("source_data/kddcup_2009/orange_small_train_churn.labels", header=None)    
     print(df_X.columns)
-    ds_name = "kdd_2009"
+    ds_name = "kddcup_2009"
     feature_names = df_X.columns
     X = df_X.values
     y = df_y.values
@@ -881,7 +881,7 @@ def save_generated_datetimes_reg():
 
 
 def save_all_classification_datasets():
-    save_kdd_2009()
+    save_kddcup_2009()
     save_iris_quantized()
     save_titanic()
     save_digits_quantized()
@@ -893,7 +893,7 @@ def save_all_classification_datasets():
     save_hard_task_classification_dataset()
     for ds_name in gClassificationDatasets.keys():
         save_class_generated_dataset_quantized(ds_name)
-    save_kdd_1999()
+    save_kddcup_1999()
     save_mushroom()
     save_glass()
     save_spambase()
@@ -927,4 +927,6 @@ def save_all():
     save_all_classification_datasets()
     save_all_regression_datasets()
 
-save_all()
+# save_all()
+save_kddcup_1999()
+save_kddcup_2009()
