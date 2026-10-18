@@ -1,4 +1,4 @@
-"pclass","name","sex","age","sibsp","parch","ticket","fare","cabin","embarked","boat","body","home.dest","target"
+"pclass","name","sex","age","sibsp","parch","ticket","fare","cabin","embarked","boat","body","home.dest","Survived"
 1,"Warren, Mr. Frank Manley","male",64.0,1,0,"110813",75.25,"D37","C","","","Portland, OR","0"
 3,"Assaf, Mr. Gerios","male",21.0,0,0,"2692",7.225,"","C","","","Ottawa, ON","0"
 1,"Robbins, Mr. Victor","male","",0,0,"PC 17757",227.525,"","C","","","","0"

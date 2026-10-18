@@ -1,4 +1,4 @@
-"age","workclass","fnlwgt","education","education-num","marital-status","occupation","relationship","race","sex","capital-gain","capital-loss","hours-per-week","native-country","target"
+"age","workclass","fnlwgt","education","education-num","marital-status","occupation","relationship","race","sex","capital-gain","capital-loss","hours-per-week","native-country","income"
 "","","","","","","","","","Male","","","","","<=50K"
 "","","","","","Married-civ-spouse","","","","","","","","","<=50K"
 "","","","","","","Protective-serv","","","","","","","",">50K"

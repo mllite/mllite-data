@@ -1,4 +1,4 @@
-"model","cyl","disp","hp","drat","wt","qsec","vs","am","gear","carb","target"
+"model","cyl","disp","hp","drat","wt","qsec","vs","am","gear","carb","mpg"
 "Mazda RX4",6,160.0,110,3.9,2.62,16.46,0,1,4,4,10.4
 "Mazda RX4 Wag",6,160.0,110,3.9,2.875,17.02,0,1,4,4,10.4
 "Datsun 710",4,108.0,93,3.85,2.32,18.61,1,1,4,1,10.4

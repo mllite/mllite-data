@@ -1,4 +1,4 @@
-"longitude","latitude","housing_median_age","total_rooms","total_bedrooms","population","households","median_income","ocean_proximity","target"
+"longitude","latitude","housing_median_age","total_rooms","total_bedrooms","population","households","median_income","ocean_proximity","median_house_value"
 1,7,8,0,0,0,0,9,0,452600
 1,7,3,8,8,8,8,9,0,358500
 1,7,10,2,1,1,1,9,0,352100

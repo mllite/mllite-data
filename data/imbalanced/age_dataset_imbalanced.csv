@@ -1,4 +1,4 @@
-"Name","Short description","Gender","Country","Occupation","Birth year","Death year","Manner of death","target"
+"Name","Short description","Gender","Country","Occupation","Birth year","Death year","Manner of death","age"
 "George Washington","1st president of the United States (1732–1799)","Male","United States of America; Kingdom of Great Britain","Politician",1732,1799.0,"natural causes",0.0
 "Douglas Adams","English writer and humorist","Male","United Kingdom","Artist",1952,2001.0,"natural causes",0.0
 "Abraham Lincoln","16th president of the United States (1809-1865)","Male","United States of America","Politician",1809,1865.0,"homicide",0.0

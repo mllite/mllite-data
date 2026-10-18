@@ -1,4 +1,4 @@
-"RI","Na","Mg","Al","Si","K","Ca","Ba","Fe","target"
+"RI","Na","Mg","Al","Si","K","Ca","Ba","Fe","Type"
 5.0,1.0,5.0,2.0,7.0,8.0,5.0,0.0,0.0,"build wind float"
 2.0,0.0,5.0,4.0,5.0,5.0,4.0,0.0,0.0,"vehic wind float"
 5.0,4.0,5.0,5.0,4.0,6.0,3.0,0.0,0.0,"build wind float"

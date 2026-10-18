@@ -1,4 +1,4 @@
-"Sex_F","Sex_I","Sex_M","Length","Diameter","Height","Whole_weight","Shucked_weight","Viscera_weight","Shell_weight","target"
+"Sex_F","Sex_I","Sex_M","Length","Diameter","Height","Whole_weight","Shucked_weight","Viscera_weight","Shell_weight","Class_number_of_rings"
 0.0,0.0,10.0,2.0,3.0,1.0,3.0,3.0,2.0,2.0,"15"
 0.0,0.0,10.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,"7"
 10.0,0.0,0.0,4.0,4.0,4.0,4.0,3.0,4.0,4.0,"9"

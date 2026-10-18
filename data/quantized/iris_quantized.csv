@@ -1,4 +1,4 @@
-"sepal length (cm)","sepal width (cm)","petal length (cm)","petal width (cm)","target"
+"sepal length (cm)","sepal width (cm)","petal length (cm)","petal width (cm)","iris"
 2.0,8.0,1.0,1.0,0
 1.0,4.0,1.0,1.0,0
 0.0,6.0,0.0,1.0,0

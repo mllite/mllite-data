@@ -1,4 +1,4 @@
-"age","workclass","fnlwgt","education","education-num","marital-status","occupation","relationship","race","sex","capital-gain","capital-loss","hours-per-week","native-country","target"
+"age","workclass","fnlwgt","education","education-num","marital-status","occupation","relationship","race","sex","capital-gain","capital-loss","hours-per-week","native-country","income"
 39,"Private",269323,"Assoc-voc",11,"Married-civ-spouse","Other-service","Husband","White","Male",0,1485,38,"United-States",">50K"
 42,"Federal-gov",55457,"10th",6,"Married-civ-spouse","Adm-clerical","Husband","White","Male",0,0,40,"Mexico","<=50K"
 21,"",231511,"Some-college",10,"Never-married","","Own-child","White","Female",0,0,20,"United-States","<=50K"

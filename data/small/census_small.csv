@@ -1,4 +1,4 @@
-"age","workclass","fnlwgt","education","education-num","marital-status","occupation","relationship","race","sex","capital-gain","capital-loss","hours-per-week","native-country","target"
+"age","workclass","fnlwgt","education","education-num","marital-status","occupation","relationship","race","sex","capital-gain","capital-loss","hours-per-week","native-country","income"
 39.0,0.0,269323.0,0.0,11.0,0.0,0.0,0.0,0.0,0.0,0.0,1485.0,38.0,0.0,">50K"
 42.0,0.0,55457.0,0.0,6.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,40.0,0.0,"<=50K"
 21.0,0.0,231511.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,20.0,0.0,"<=50K"

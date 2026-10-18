@@ -1,4 +1,4 @@
-"pclass","name","sex","age","sibsp","parch","ticket","fare","cabin","embarked","boat","body","home.dest","target"
+"pclass","name","sex","age","sibsp","parch","ticket","fare","cabin","embarked","boat","body","home.dest","Survived"
 "","","","","","","","","","","","","","1"
 "","","","","","","","","","","","","","1"
 "","","","","","","","","","","","","","0"
