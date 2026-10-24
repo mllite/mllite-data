@@ -34,7 +34,9 @@ def get_dataset_task(ds_name):
         return "regression"
     return "classification"
         
-        
+def df_to_csv(df, filename):
+    print("WRITING_CSV_FILE", filename, df.shape)
+    df.to_csv(filename, index= False, quoting=csv.QUOTE_NONNUMERIC);        
 
 
 def generate_embedded_dataset(src_filename):
@@ -121,7 +123,7 @@ def save_raw(ds_name, X, y, feature_names, target_name):
     df.info()
     print(df.head())
     print("RAW_DATA_EXTRACT_END", ds_name)
-    df.to_csv("data/raw/" + ds_name + "_raw.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);    
+    df_to_csv(df, "data/raw/" + ds_name + "_raw.csv");    
 
 def generate_random_string(rng):
     import string
@@ -145,7 +147,7 @@ def save_artificial_corrupted_data(ds_name, X, y, feature_names, target_name, co
         df[c] = df[c].apply(lambda x : x if(rng.uniform() > corruption_rate) else generate_random_string(rng))
     df[target_name] = y[:gDatasetLengthLimit]
     df.info()
-    df.to_csv("data/"  + description + "/" + ds_name + "_"  + description + ".csv", index= False, quoting=csv.QUOTE_NONNUMERIC);    
+    df_to_csv(df, "data/"  + description + "/" + ds_name + "_"  + description + ".csv");    
 
 # deepseek proposal. classification/regression problems made hard
 def save_artificial_imbalanced_data(ds_name, X, y, feature_names, target_name, positive_rate=0.05, description = "imbalanced"):
@@ -176,7 +178,7 @@ def save_artificial_imbalanced_data(ds_name, X, y, feature_names, target_name, p
         df[target_name] = df[target_name].apply(lambda x : x if (x >= q) else min_tgt)
         print(df[target_name].describe())
     df.info()
-    df.to_csv("data/"  + description + "/" + ds_name + "_"  + description + ".csv", index= False, quoting=csv.QUOTE_NONNUMERIC);    
+    df_to_csv(df, "data/"  + description + "/" + ds_name + "_"  + description + ".csv");    
 
 def save_artificial_missing_data(ds_name, X, y, feature_names, target_name, missing_rate=0.05, description = "missing"):
     rng = np.random.default_rng(seed=1789)
@@ -192,7 +194,7 @@ def save_artificial_missing_data(ds_name, X, y, feature_names, target_name, miss
         df[c] = df[c].apply(lambda x : x if(rng.uniform() > missing_rate) else None)
     df[target_name] = y[:gDatasetLengthLimit]
     df.info()
-    df.to_csv("data/"  + description + "/" + ds_name + "_"  + description + ".csv", index= False, quoting=csv.QUOTE_NONNUMERIC);    
+    df_to_csv(df, "data/"  + description + "/" + ds_name + "_"  + description + ".csv");    
 
 def save_artificial_missing(ds_name, X, y, feature_names, target_name):
     save_artificial_missing_data(ds_name, X, y, feature_names, target_name,  missing_rate = 0.05, description = "missing")
@@ -218,7 +220,7 @@ def save_quantized(ds_name, X, y, feature_names, target_name):
     df_qt[target_name] = y
     df_qt.info()
     df_qt = df_qt.head(gDatasetLengthLimit)
-    df_qt.to_csv("data/quantized/" + ds_name + "_quantized.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
+    df_to_csv(df_qt, "data/quantized/" + ds_name + "_quantized.csv");
     
     
 def save_dataset_flavors(ds_name, X, y, feature_names, target_name, sample_medium = False):
@@ -231,25 +233,25 @@ def save_dataset_flavors(ds_name, X, y, feature_names, target_name, sample_mediu
     df[target_name] = y
     df.info()
     df = df.head(gDatasetLengthLimit)
-    df.to_csv("data/original/" + ds_name + ".csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
+    df_to_csv(df, "data/original/" + ds_name + ".csv");
     df_small = df.sample(n=min(df.shape[0], 64), random_state=1789)
     df_small.info()
-    df_small.to_csv("data/small/" + ds_name + "_small.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
+    df_to_csv(df_small, "data/small/" + ds_name + "_small.csv");
     df_tiny = df.sample(n=16, random_state=1789)
     df_tiny.info()
-    df_tiny.to_csv("data/tiny/" + ds_name + "_tiny.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
+    df_to_csv(df_tiny, "data/tiny/" + ds_name + "_tiny.csv");
     if(sample_medium):
         df_medium = df.sample(n=min(df.shape[0], 512), random_state=1789)
         df_medium.info()
-        df_medium.to_csv("data/medium/" + ds_name + "_medium.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
+        df_to_csv(df_medium, "data/medium/" + ds_name + "_medium.csv");
     else:
         df_medium = df.head(512)
         df_medium.info()
-        df_medium.to_csv("data/medium/" + ds_name + "_medium.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
+        df_to_csv(df_medium, "data/medium/" + ds_name + "_medium.csv");
 
     df_sampled = df.sample(n=df.shape[0] // 8, random_state=1789)
     df_sampled.info()
-    df_sampled.to_csv("data/sampled/" + ds_name + "_sampled.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
+    df_to_csv(df_sampled, "data/sampled/" + ds_name + "_sampled.csv");
     save_quantized(ds_name, X, y, feature_names, target_name) 
 
     generate_embedded_dataset("data/small/" + ds_name + "_small.csv");
@@ -273,20 +275,20 @@ def save_raw_dataset_flavors(ds_name, X, y, feature_names, target_name):
     df[target_name] = y
     df.info()
     df = df.head(gDatasetLengthLimit)
-    df.to_csv("data/original/" + ds_name + ".csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
+    df_to_csv(df, "data/original/" + ds_name + ".csv");
     
     df_small = df.sample(n=64, random_state=1789)
     df_small.info()
-    df_small.to_csv("data/small/" + ds_name + "_small.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
+    df_to_csv(df_small, "data/small/" + ds_name + "_small.csv");
     df_tiny = df.sample(n=16, random_state=1789)
     df_tiny.info()
-    df_tiny.to_csv("data/tiny/" + ds_name + "_tiny.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
+    df_to_csv(df_tiny, "data/tiny/" + ds_name + "_tiny.csv");
     df_medium = df.sample(n=512, random_state=1789)
     df_medium.info()
-    df_medium.to_csv("data/medium/" + ds_name + "_medium.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
+    df_to_csv(df_medium, "data/medium/" + ds_name + "_medium.csv");
     df_sampled = df.sample(n=df.shape[0] // 8, random_state=1789)
     df_sampled.info()
-    df_sampled.to_csv("data/sampled/" + ds_name + "_sampled.csv", index= False, quoting=csv.QUOTE_NONNUMERIC);
+    df_to_csv(df_sampled, "data/sampled/" + ds_name + "_sampled.csv");
     save_quantized(ds_name, X, y, feature_names, target_name) 
     
 def save_titanic():
@@ -351,24 +353,26 @@ def save_census_quantized():
     save_dataset_flavors("census", X1, y, feature_names, target_name) 
 
 def encode_one_hot(df, categorical_cols):
+    print("encode_one_hot", df.shape, categorical_cols)
     from sklearn.preprocessing import OneHotEncoder
     df_hot = pd.DataFrame();
     for col in df.columns:
         if(col in categorical_cols):
             X1 = df[col].values.reshape(-1, 1)
-            X1 = np.ascontiguousarray(X1)
             enc = OneHotEncoder(handle_unknown='ignore', sparse_output=False, drop='if_binary', min_frequency=5, max_categories=7)
             X2 = enc.fit_transform(X1);                
             feature_names_col = enc.get_feature_names_out()
-            print(col, feature_names_col)
+            print(col, feature_names_col, X1.shape, X2.shape)
             for c in range(X2.shape[1]):
                 name = feature_names_col[c]
                 name = name.replace("x0_", col + "_")
                 df_hot[name] = X2[:,c].astype(np.int32)
         else:
             df_hot[col] = df[col]
+            print(col, df[col].shape, df_hot.shape)
+            print(df[col].describe())
             if(pd.api.types.is_float_dtype(df[col]) and np.issubdtype(df[col].dtype, np.floating)):
-                df_hot[col] = df_hot[col].astype(np.float32)
+                df_hot[col] = df_hot[col].astype(np.float32).values
                 df_hot[col] = df_hot[col].round(4)
                 
     print(df_hot)
@@ -764,10 +768,13 @@ def save_age_dataset():
     # source : https://github.com/Moradnejad/AgeDataset
     gTypes["age_dataset"] = ("float", "float")    
     df = pd.read_csv("source_data/AgeDataset.csv.gz")
-    print(df.columns)
+    print(df.info())
+    tgt_name = df.columns[-1]
+    df = df[ df[tgt_name].notna()].reset_index() # row with "Creator of this dataset" ?
+    print(df.info())
     X = df[df.columns[:-1]].values
     y = df[df.columns[-1]].values
-    target_name = "age"    
+    target_name = "Age of death"    
     save_raw("age_dataset", X, y, df.columns[:-1], target_name)
     save_artificial_missing("age_dataset", X, y, df.columns[:-1], target_name)
     non_numerical_cols = [col for col in df.columns if not is_numerical(df[col].dtype)]
@@ -960,4 +967,5 @@ def save_all():
     save_all_classification_datasets()
     save_all_regression_datasets()
 
-save_all()
+# save_all()
+save_age_dataset()
