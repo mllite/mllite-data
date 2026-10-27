@@ -769,12 +769,11 @@ def save_age_dataset():
     gTypes["age_dataset"] = ("float", "float")    
     df = pd.read_csv("source_data/AgeDataset.csv.gz")
     print(df.info())
-    tgt_name = df.columns[-1]
-    df = df[ df[tgt_name].notna()].reset_index() # row with "Creator of this dataset" ?
+    target_name = "Age of death"    
+    df = df[ df[target_name].notna()].reset_index(drop = True) # row with "Creator of this dataset" ?
     print(df.info())
     X = df[df.columns[:-1]].values
     y = df[df.columns[-1]].values
-    target_name = "Age of death"    
     save_raw("age_dataset", X, y, df.columns[:-1], target_name)
     save_artificial_missing("age_dataset", X, y, df.columns[:-1], target_name)
     non_numerical_cols = [col for col in df.columns if not is_numerical(df[col].dtype)]
