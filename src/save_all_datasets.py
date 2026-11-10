@@ -416,6 +416,7 @@ def save_hotel_reviews():
     hotel_reviews = fetch_openml(name="515K-Hotel-Reviews-Data-in-Europe", version=1)
     feature_names = [x  for x in hotel_reviews.feature_names if(x != "Reviewer_Score")]    
     target_name = "Reviewer_Score"
+    hotel_reviews.data["Review_Date"] = pd.to_datetime(hotel_reviews.data["Review_Date"])
     y = hotel_reviews.data["Reviewer_Score"].values
     X = hotel_reviews.data[feature_names].values
     tags = hotel_reviews.data["Tags"].values.tolist()
@@ -967,4 +968,4 @@ def save_all():
     save_all_regression_datasets()
 
 # save_all()
-save_age_dataset()
+save_hotel_reviews()
